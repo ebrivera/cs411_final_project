@@ -1,13 +1,13 @@
 #!/bin/bash
 
 # Set the name of the virtual environment directory
-VENV_DIR="meal_max_venv"
+VENV_DIR="final_proj_venv"
 REQUIREMENTS_FILE="requirements.lock"
 
 # Check if the virtual environment already exists
 if [ ! -d "$VENV_DIR" ]; then
   echo "Creating virtual environment..."
-  python -m venv "$VENV_DIR"
+  python3 -m venv "$VENV_DIR"
 
   source "$VENV_DIR/bin/activate"
 
