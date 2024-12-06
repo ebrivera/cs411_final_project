@@ -1,8 +1,7 @@
-
 import logging
 from typing import List
-# from music_collection.models.song_model import Song, update_play_count
-# from music_collection.utils.logger import configure_logger
+from models.user_model import User
+from music_collection.utils.logger import configure_logger
 
 logger = logging.getLogger(__name__)
 configure_logger(logger)
@@ -10,94 +9,92 @@ configure_logger(logger)
 
 class FavoriteLocations:
     id: int
-    user_id: int
-    location_name: str
+    location_ids: list[int]
+
     """
     A class to manage a list of favorite locations.
 
     Attributes:
-        id (int): The ID of a specific location.
-        user_id (int): The ID of the specific user.
-        location_name (str): The name of the favorite location.
-
+        id (int): The ID of the user associated with the favorite locations.
+        location_ids (List[int]): A list of IDs representing the user's favorite locations.
     """
 
-    def __init__(self):
+    def __init__(self, user: User):
+        """
+        Initializes a FavoriteLocations instance.
 
+        Args:
+            user (User): The user object associated with the favorite locations.
+
+        Attributes:
+            id (int): The ID of the user.
+            location_ids (List[int]): An empty list to store favorite location IDs.
         """
-        Initializes the PlaylistModel with an empty playlist and the current track set to 1.
-        """
-        self.current_track_number = 1
-        self.playlist: List[Song] = []
+
+        self.id = user.id
+        self.location_ids = []
 
     ##################################################
     # Song Management Functions
     ##################################################
 
-    def add_song_to_playlist(self, song: Song) -> None:
+    def add_id_to_favorites(self, location_id: int) -> None:
         """
-        Adds a song to the playlist.
+        Adds a location to the list of favorite locations.
 
         Args:
-            song (Song): the song to add to the playlist.
+            location_id (int): The ID of the location to add.
 
         Raises:
-            TypeError: If the song is not a valid Song instance.
-            ValueError: If a song with the same 'id' already exists.
+            ValueError: If a location with the same ID already exists in the list.
         """
-        logger.info("Adding new song to playlist")
-        if not isinstance(song, Song):
-            logger.error("Song is not a valid song")
-            raise TypeError("Song is not a valid song")
 
-        song_id = self.validate_song_id(song.id, check_in_playlist=False)
-        if song_id in [song_in_playlist.id for song_in_playlist in self.playlist]:
-            logger.error("Song with ID %d already exists in the playlist", song.id)
-            raise ValueError(f"Song with ID {song.id} already exists in the playlist")
+        logger.info("Adding new location (ID: %d) to favorite locations for user (ID: %d)", location_id, self.id)
 
-        self.playlist.append(song)
+        if location_id in self.location_ids:
+            logger.error("Location with ID %d already exists in the favorite locations for user (ID: %d)", location_id, self.id)
+            raise ValueError(f"Location with ID {location_id} already exists in the favorite locations")
 
-    def remove_song_by_song_id(self, song_id: int) -> None:
+        self.location_ids.append(location_id)
+        logger.info("Location with ID %d added successfully to favorite locations for user (ID: %d)", location_id, self.id)
+
+    def remove_location_by_id(self, loc_id: int) -> None:
         """
-        Removes a song from the playlist by its song ID.
+        Removes a location from the list of favorite locations by its ID.
 
         Args:
-            song_id (int): The ID of the song to remove from the playlist.
+            loc_id (int): The ID of the location to remove from the list.
 
         Raises:
-            ValueError: If the playlist is empty or the song ID is invalid.
+            ValueError: If the list of favorite locations is empty or the location ID does not exist in the list.
         """
-        logger.info("Removing song with id %d from playlist", song_id)
-        self.check_if_empty()
-        song_id = self.validate_song_id(song_id)
-        self.playlist = [song_in_playlist for song_in_playlist in self.playlist if song_in_playlist.id != song_id]
-        logger.info("Song with id %d has been removed", song_id)
 
-    def remove_song_by_track_number(self, track_number: int) -> None:
-        """
-        Removes a song from the playlist by its track number (1-indexed).
+        logger.info("Attempting to remove location with ID %d from favorite locations for user (ID: %d)", loc_id, self.id)
 
-        Args:
-            track_number (int): The track number of the song to remove.
+        if not self.location_ids:
+            logger.error("Favorite locations list is empty for user (ID: %d)", self.id)
+            raise ValueError("The favorite locations list is empty")
 
-        Raises:
-            ValueError: If the playlist is empty or the track number is invalid.
-        """
-        logger.info("Removing song at track number %d from playlist", track_number)
-        self.check_if_empty()
-        track_number = self.validate_track_number(track_number)
-        playlist_index = track_number - 1
-        logger.info("Removing song: %s", self.playlist[playlist_index].title)
-        del self.playlist[playlist_index]
+        if loc_id not in self.location_ids:
+            logger.error("Location with ID %d does not exist in favorite locations for user (ID: %d)", loc_id, self.id)
+            raise ValueError(f"Location with ID {loc_id} does not exist in the favorite locations")
 
-    def clear_playlist(self) -> None:
+        self.location_ids.remove(loc_id)
+        logger.info("Location with ID %d has been removed successfully from favorite locations for user (ID: %d)", loc_id, self.id)
+
+    def clear_favorite_locations(self) -> None:
         """
-        Clears all songs from the playlist. If the playlist is already empty, logs a warning.
+        Clears all favorite locations for the user. If the list is already empty, logs a warning.
         """
-        logger.info("Clearing playlist")
-        if self.get_playlist_length() == 0:
-            logger.warning("Clearing an empty playlist")
-        self.playlist.clear()
+        
+        logger.info("Clearing all favorite locations for user (ID: %d)", self.id)
+
+        if not self.location_ids:
+            logger.warning("Attempting to clear an already empty list of favorite locations for user (ID: %d)", self.id)
+            return
+
+        self.location_ids.clear()
+        logger.info("All favorite locations have been cleared for user (ID: %d)", self.id)
 
     ##################################################
     # Playlist Retrieval Functions
