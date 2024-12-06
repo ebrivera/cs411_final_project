@@ -3,9 +3,12 @@ import logging
 import os
 import sqlite3
 
-from music_collection.utils.logger import configure_logger
-from music_collection.utils.random_utils import get_random
-from music_collection.utils.sql_utils import get_db_connection
+from weather_app.utils.logger import configure_logger
+from weather_app.utils.sql_utils import get_db_connection
+
+# from music_collection.utils.logger import configure_logger
+# from music_collection.utils.random_utils import get_random
+# from music_collection.utils.sql_utils import get_db_connection
 
 
 logger = logging.getLogger(__name__)
@@ -13,20 +16,17 @@ configure_logger(logger)
 
 
 @dataclass
-class Song:
+class User:
     id: int
-    artist: str
-    title: str
-    year: int
-    genre: str
-    duration: int  # in seconds
+    username: str
+    password_hash: str
+    salt: str
 
     def __post_init__(self):
         if self.duration <= 0:
             raise ValueError(f"Duration must be greater than 0, got {self.duration}")
         if self.year <= 1900:
             raise ValueError(f"Year must be greater than 1900, got {self.year}")
-
 
 def create_song(artist: str, title: str, year: int, genre: str, duration: int) -> None:
     """
