@@ -7,17 +7,22 @@ logger = logging.getLogger(__name__)
 configure_logger(logger)
 
 
-class PlaylistModel:
+class FavoriteLocations:
+    id: int
+    user_id: int
+    location_name: str
     """
-    A class to manage a playlist of songs.
+    A class to manage a list of favorite locations.
 
     Attributes:
-        current_track_number (int): The current track number being played.
-        playlist (List[Song]): The list of songs in the playlist.
+        id (int): The ID of a specific location.
+        user_id (int): The ID of the specific user.
+        location_name (str): The name of the favorite location.
 
     """
 
     def __init__(self):
+
         """
         Initializes the PlaylistModel with an empty playlist and the current track set to 1.
         """
