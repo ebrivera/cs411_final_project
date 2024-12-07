@@ -3,6 +3,7 @@ from flask import Flask, jsonify, make_response, Response, request
 
 from weather_app.models import favorite_locations_model
 from weather_app.models import user_model
+from weather_app.utils.sql_utils import check_database_connection, check_table_exists
 
 
 # Load environment variables from .env file
@@ -45,8 +46,11 @@ def db_check() -> Response:
         check_database_connection()
         app.logger.info("Database connection is OK.")
         app.logger.info("Checking if songs table exists...")
-        check_table_exists("songs")
-        app.logger.info("songs table exists.")
+        check_table_exists("favorite_locations")
+        app.logger.info("Favorite_locations table exists.")
+        app.logger.info("Checking if users table exists")
+        check_table_exists("users")
+        app.logger.info("Users table exists")
         return make_response(jsonify({'database_status': 'healthy'}), 200)
     except Exception as e:
         return make_response(jsonify({'error': str(e)}), 404)
@@ -59,43 +63,37 @@ def db_check() -> Response:
 ##########################################################
 
 @app.route('/api/create-song', methods=['POST'])
-def add_song() -> Response:
+def add_location() -> Response:
     """
-    Route to add a new song to the playlist.
+    Route to add a new location to favorite locations.
 
     Expected JSON Input:
-        - artist (str): The artist's name.
-        - title (str): The song title.
-        - year (int): The year the song was released.
-        - genre (str): The genre of the song.
-        - duration (int): The duration of the song in seconds.
+        - location_name (str): the location's name
+        - user_id (int): The user ID .
 
     Returns:
-        JSON response indicating the success of the song addition.
+        JSON response indicating the success of the location addition.
     Raises:
         400 error if input validation fails.
-        500 error if there is an issue adding the song to the playlist.
+        500 error if there is an issue adding the location to the favorites.
     """
-    app.logger.info('Adding a new song to the catalog')
+    app.logger.info('Adding a new location to favorites')
     try:
         data = request.get_json()
 
-        artist = data.get('artist')
-        title = data.get('title')
-        year = data.get('year')
-        genre = data.get('genre')
-        duration = data.get('duration')
+        user_id = data.get('user_id')
+        location_name = data.get('location_name')
 
-        if not artist or not title or year is None or not genre or duration is None:
+        if not user_id or not location_name:
             return make_response(jsonify({'error': 'Invalid input, all fields are required with valid values'}), 400)
 
         # Add the song to the playlist
-        app.logger.info('Adding song: %s - %s', artist, title)
-        song_model.create_song(artist=artist, title=title, year=year, genre=genre, duration=duration)
-        app.logger.info("Song added to playlist: %s - %s", artist, title)
-        return make_response(jsonify({'status': 'success', 'song': title}), 201)
+        app.logger.info('Adding location:', location_name)
+        favorite_locations_model.FavoriteLocations.add_favorite(user_id=user_id,location_name=location_name)
+        app.logger.info("Location added to favorites: ", location_name)
+        return make_response(jsonify({'status': 'success', 'location': location_name}), 201)
     except Exception as e:
-        app.logger.error("Failed to add song: %s", str(e))
+        app.logger.error("Failed to add location: %s", str(e))
         return make_response(jsonify({'error': str(e)}), 500)
 
 @app.route('/api/clear-catalog', methods=['DELETE'])
@@ -107,35 +105,41 @@ def clear_catalog() -> Response:
         JSON response indicating success of the operation or error message.
     """
     try:
+        data = request.get_json()
+        user_id = data.get("user_id")
+
         app.logger.info("Clearing the song catalog")
-        song_model.clear_catalog()
+        favorite_locations_model.FavoriteLocations.get_weather_for_favorite(location_name=location_name,)
         return make_response(jsonify({'status': 'success'}), 200)
     except Exception as e:
         app.logger.error(f"Error clearing catalog: {e}")
         return make_response(jsonify({'error': str(e)}), 500)
 
 @app.route('/api/delete-song/<int:song_id>', methods=['DELETE'])
-def delete_song(song_id: int) -> Response:
+def delete_location(location_name: str) -> Response:
     """
-    Route to delete a song by its ID (soft delete).
+    Route to delete a location by its name.
 
     Path Parameter:
-        - song_id (int): The ID of the song to delete.
+        - user_id (int): The ID of the user.
+        - location_name (str): The name of the location to delete
 
     Returns:
         JSON response indicating success of the operation or error message.
     """
     try:
-        app.logger.info(f"Deleting song by ID: {song_id}")
-        song_model.delete_song(song_id)
+        data = request.get_json()
+        user_id = data.get("user_id")
+        app.logger.info(f"Deleting location by name: {location_name}")
+        favorite_locations_model.FavoriteLocations.delete_favorite(user_id=user_id,location_name=location_name)
         return make_response(jsonify({'status': 'success'}), 200)
     except Exception as e:
-        app.logger.error(f"Error deleting song: {e}")
+        app.logger.error(f"Error deleting location: {e}")
         return make_response(jsonify({'error': str(e)}), 500)
 
 
 @app.route('/api/get-all-songs-from-catalog', methods=['GET'])
-def get_all_songs() -> Response:
+def get_all_favorites() -> Response:
     """
     Route to retrieve all songs in the catalog (non-deleted), with an option to sort by play count.
 
@@ -146,20 +150,18 @@ def get_all_songs() -> Response:
         JSON response with the list of songs or error message.
     """
     try:
-        # Extract query parameter for sorting by play count
-        sort_by_play_count = request.args.get('sort_by_play_count', 'false').lower() == 'true'
-
-        app.logger.info("Retrieving all songs from the catalog, sort_by_play_count=%s", sort_by_play_count)
-        songs = song_model.get_all_songs(sort_by_play_count=sort_by_play_count)
-
-        return make_response(jsonify({'status': 'success', 'songs': songs}), 200)
+        data = request.get_json()
+        user_id = data.get("user_id")
+        app.logger.info("Retrieving all favorites from the user's favorites")
+        locations = favorite_locations_model.FavoriteLocations.get_favorites(user_id=user_id)
+        return make_response(jsonify({'status': 'success', 'locations': locations}), 200)
     except Exception as e:
-        app.logger.error(f"Error retrieving songs: {e}")
+        app.logger.error(f"Error retrieving locations: {e}")
         return make_response(jsonify({'error': str(e)}), 500)
 
 
 @app.route('/api/get-song-from-catalog-by-id/<int:song_id>', methods=['GET'])
-def get_song_by_id(song_id: int) -> Response:
+def get_favorite_by_ID(location_id: int) -> Response:
     """
     Route to retrieve a song by its ID.
 
@@ -170,69 +172,17 @@ def get_song_by_id(song_id: int) -> Response:
         JSON response with the song details or error message.
     """
     try:
-        app.logger.info(f"Retrieving song by ID: {song_id}")
-        song = song_model.get_song_by_id(song_id)
-        return make_response(jsonify({'status': 'success', 'song': song}), 200)
+        app.logger.info(f"Retrieving song by ID: {location_id}")
+        location = favorite_locations_model.FavoriteLocations.get_favorite_by_id(location_id)
+        return make_response(jsonify({'status': 'success', 'song': location}), 200)
     except Exception as e:
         app.logger.error(f"Error retrieving song by ID: {e}")
-        return make_response(jsonify({'error': str(e)}), 500)
-
-@app.route('/api/get-song-from-catalog-by-compound-key', methods=['GET'])
-def get_song_by_compound_key() -> Response:
-    """
-    Route to retrieve a song by its compound key (artist, title, year).
-
-    Query Parameters:
-        - artist (str): The artist's name.
-        - title (str): The song title.
-        - year (int): The year the song was released.
-
-    Returns:
-        JSON response with the song details or error message.
-    """
-    try:
-        # Extract query parameters from the request
-        artist = request.args.get('artist')
-        title = request.args.get('title')
-        year = request.args.get('year')
-
-        if not artist or not title or not year:
-            return make_response(jsonify({'error': 'Missing required query parameters: artist, title, year'}), 400)
-
-        # Attempt to cast year to an integer
-        try:
-            year = int(year)
-        except ValueError:
-            return make_response(jsonify({'error': 'Year must be an integer'}), 400)
-
-        app.logger.info(f"Retrieving song by compound key: {artist}, {title}, {year}")
-        song = song_model.get_song_by_compound_key(artist, title, year)
-        return make_response(jsonify({'status': 'success', 'song': song}), 200)
-
-    except Exception as e:
-        app.logger.error(f"Error retrieving song by compound key: {e}")
-        return make_response(jsonify({'error': str(e)}), 500)
-
-@app.route('/api/get-random-song', methods=['GET'])
-def get_random_song() -> Response:
-    """
-    Route to retrieve a random song from the catalog.
-
-    Returns:
-        JSON response with the details of a random song or error message.
-    """
-    try:
-        app.logger.info("Retrieving a random song from the catalog")
-        song = song_model.get_random_song()
-        return make_response(jsonify({'status': 'success', 'song': song}), 200)
-    except Exception as e:
-        app.logger.error(f"Error retrieving a random song: {e}")
         return make_response(jsonify({'error': str(e)}), 500)
 
 
 ############################################################
 #
-# Playlist Management
+# User Management
 #
 ############################################################
 
