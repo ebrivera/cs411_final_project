@@ -1,9 +1,8 @@
 from dotenv import load_dotenv
 from flask import Flask, jsonify, make_response, Response, request
 
-from music_collection.models import song_model
-from music_collection.models.playlist_model import PlaylistModel
-from music_collection.utils.sql_utils import check_database_connection, check_table_exists
+from weather_app.models import favorite_locations_model
+from weather_app.models import user_model
 
 
 # Load environment variables from .env file
@@ -11,7 +10,6 @@ load_dotenv()
 
 app = Flask(__name__)
 
-playlist_model = PlaylistModel()
 
 
 ####################################################
