@@ -97,25 +97,9 @@ def add_location() -> Response:
         return make_response(jsonify({'error': str(e)}), 500)
 
 @app.route('/api/clear-catalog', methods=['DELETE'])
-def clear_catalog() -> Response:
-    """
-    Route to clear the entire song catalog (recreates the table).
 
-    Returns:
-        JSON response indicating success of the operation or error message.
-    """
-    try:
-        data = request.get_json()
-        user_id = data.get("user_id")
 
-        app.logger.info("Clearing the song catalog")
-        favorite_locations_model.FavoriteLocations.get_weather_for_favorite(location_name=location_name,)
-        return make_response(jsonify({'status': 'success'}), 200)
-    except Exception as e:
-        app.logger.error(f"Error clearing catalog: {e}")
-        return make_response(jsonify({'error': str(e)}), 500)
-
-@app.route('/api/delete-song/<int:song_id>', methods=['DELETE'])
+@app.route('/api/delete_favorite/<str:user_id>', methods=['DELETE'])
 def delete_location(location_name: str) -> Response:
     """
     Route to delete a location by its name.
