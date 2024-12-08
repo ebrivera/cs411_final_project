@@ -144,7 +144,7 @@ def get_all_favorites() -> Response:
         return make_response(jsonify({'error': str(e)}), 500)
 
 
-@app.route('/api/get-song-from-catalog-by-id/<int:song_id>', methods=['GET'])
+@app.route('/api/get_favorite_by_id', methods=['GET'])
 def get_favorite_by_ID(location_id: int) -> Response:
     """
     Route to retrieve a song by its ID.
