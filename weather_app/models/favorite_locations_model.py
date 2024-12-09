@@ -1,7 +1,7 @@
 import logging
-from typing import List
+from typing import List, Any
 from dataclasses import asdict, dataclass
-''
+
 from sqlalchemy.exc import IntegrityError
 from weather_app import db
 from weather_app.utils.logger import configure_logger
