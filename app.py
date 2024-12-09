@@ -1,6 +1,9 @@
 from dotenv import load_dotenv
 from flask import Flask, jsonify, make_response, Response, request
+from werkzeug.exceptions import BadRequest, Unauthorized
+import logging
 
+from weather_app import db
 from weather_app.models import favorite_locations_model
 from weather_app.models import user_model
 from weather_app.utils.sql_utils import check_database_connection, check_table_exists
@@ -9,8 +12,8 @@ from weather_app.utils.sql_utils import check_database_connection, check_table_e
 # Load environment variables from .env file
 load_dotenv()
 
+# Initialize Flask app
 app = Flask(__name__)
-
 
 
 ####################################################
@@ -51,6 +54,10 @@ def db_check() -> Response:
         app.logger.info("Checking if users table exists")
         check_table_exists("users")
         app.logger.info("Users table exists")
+        app.logger.info("Checking if favorite_locations table exists")
+        check_table_exists("favorite_locations")
+        check_table_exists("favorite_locations")
+        app.logger.info("Favorite_locations table exists")
         return make_response(jsonify({'database_status': 'healthy'}), 200)
     except Exception as e:
         return make_response(jsonify({'error': str(e)}), 404)
@@ -85,6 +92,7 @@ def add_location() -> Response:
         location_name = data.get('location_name')
 
         if not user_id or not location_name:
+            app.logger.error('Invalid input: user_id and location_name are required')
             return make_response(jsonify({'error': 'Invalid input, all fields are required with valid values'}), 400)
 
         # Add the song to the playlist
@@ -97,8 +105,8 @@ def add_location() -> Response:
         return make_response(jsonify({'error': str(e)}), 500)
 
 
-@app.route('/api/delete-favorite/<str:user_id>', methods=['DELETE'])
-def delete_location(location_name: str) -> Response:
+@app.route('/api/delete-favorite/<int:user_id>/<string:location_name>', methods=['DELETE'])
+def delete_location(user_id: int, location_name: str) -> Response:
     """
     Route to delete a location by its name.
 
@@ -116,7 +124,7 @@ def delete_location(location_name: str) -> Response:
         favorite_locations_model.FavoriteLocations.delete_favorite(user_id=user_id,location_name=location_name)
         return make_response(jsonify({'status': 'success'}), 200)
     except Exception as e:
-        app.logger.error(f"Error deleting location: {e}")
+        app.logger.error(f"Errorw deleting location: {e}")
         return make_response(jsonify({'error': str(e)}), 500)
 
 
