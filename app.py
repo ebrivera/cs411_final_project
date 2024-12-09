@@ -58,11 +58,11 @@ def db_check() -> Response:
 
 ##########################################################
 #
-# Song Management
+# Favorite Locations Management
 #
 ##########################################################
 
-@app.route('/api/create-song', methods=['POST'])
+@app.route('/api/add-favorite', methods=['POST'])
 def add_location() -> Response:
     """
     Route to add a new location to favorite locations.
@@ -96,10 +96,8 @@ def add_location() -> Response:
         app.logger.error("Failed to add location: %s", str(e))
         return make_response(jsonify({'error': str(e)}), 500)
 
-@app.route('/api/clear-catalog', methods=['DELETE'])
 
-
-@app.route('/api/delete_favorite/<str:user_id>', methods=['DELETE'])
+@app.route('/api/delete-favorite/<str:user_id>', methods=['DELETE'])
 def delete_location(location_name: str) -> Response:
     """
     Route to delete a location by its name.
@@ -122,7 +120,7 @@ def delete_location(location_name: str) -> Response:
         return make_response(jsonify({'error': str(e)}), 500)
 
 
-@app.route('/api/get-all-songs-from-catalog', methods=['GET'])
+@app.route('/api/get-favorites', methods=['GET'])
 def get_all_favorites() -> Response:
     """
     Route to retrieve all songs in the catalog (non-deleted), with an option to sort by play count.
@@ -144,7 +142,7 @@ def get_all_favorites() -> Response:
         return make_response(jsonify({'error': str(e)}), 500)
 
 
-@app.route('/api/get_favorite_by_id', methods=['GET'])
+@app.route('/api/get-favorite-by-id', methods=['GET'])
 def get_favorite_by_ID(location_id: int) -> Response:
     """
     Route to retrieve a song by its ID.
@@ -170,7 +168,7 @@ def get_favorite_by_ID(location_id: int) -> Response:
 #
 ############################################################
 
-@app.route('/api/create_user', methods=['POST'])
+@app.route('/api/create-user', methods=['POST'])
 def create_user(username, password) -> Response:
     """
     Route to add a song to the playlist by compound key (artist, title, year).
@@ -198,7 +196,7 @@ def create_user(username, password) -> Response:
         app.logger.error(f"Error creating user: {e}")
         return make_response(jsonify({'error': str(e)}), 500)
 
-@app.route('/api/check_password', methods=['GET'])
+@app.route('/api/check-password', methods=['GET'])
 def check_pass(username, password) -> Response:
     """
     Route to remove a song from the playlist by compound key (artist, title, year).
@@ -225,7 +223,7 @@ def check_pass(username, password) -> Response:
         app.logger.error(f"Error checking password: {e}")
         return make_response(jsonify({'error': str(e)}), 500)
 
-@app.route('/api/get_id_by_username', methods=['GET'])
+@app.route('/api/get-id-by-username', methods=['GET'])
 def get_id_by_user(username) -> Response:
     """
     Route to remove a song from the playlist by track number.
@@ -250,7 +248,7 @@ def get_id_by_user(username) -> Response:
         app.logger.error(f"Error geting ID for user: {e}")
         return make_response(jsonify({'error': str(e)}), 500)
 
-@app.route('/api/update_password', methods=['POST'])
+@app.route('/api/update-password', methods=['POST'])
 def update_password(user,password,newpass) -> Response:
     """
     Route to clear all songs from the playlist.
