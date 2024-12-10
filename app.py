@@ -128,17 +128,18 @@ def delete_location(user_id: int, location_name: str) -> Response:
 @app.route('/api/get-favorites', methods=['GET'])
 def get_all_favorites() -> Response:
     """
-    Route to retrieve all songs in the catalog (non-deleted), with an option to sort by play count.
+    Route to retrieve all favorites for specific user,
 
     Query Parameter:
-        - sort_by_play_count (bool, optional): If true, sort songs by play count.
 
     Returns:
         JSON response with the list of songs or error message.
     """
     try:
-        data = request.get_json()
-        user_id = data.get("user_id")
+        user_id = request.args.get("user_id")
+        if not user_id:
+            app.logger.error("Invalid input: 'user_id' is required.")
+            
         app.logger.info("Retrieving all favorites from the user's favorites")
         locations = favorite_locations_model.FavoriteLocations.get_favorites(user_id=user_id)
         return make_response(jsonify({'status': 'success', 'locations': locations}), 200)
@@ -160,7 +161,7 @@ def get_favorite_by_ID(location_id: int) -> Response:
     """
     try:
         app.logger.info(f"Retrieving weather at location: {location_id}")
-        weather = favorite_locations_model.FavoriteLocations.get_favorite_by_id(location_id)
+        weather = favorite_locations_model.FavoriteLocations.get_favorite_by_id(location_id, WeatherClient())
         return make_response(jsonify({'status': 'success', 'song': weather}), 200)
     except Exception as e:
         app.logger.error(f"Error retrieving location by ID: {e}")
@@ -178,7 +179,6 @@ def get_weather_for_favorite(location_name) -> Response:
         JSON response with the song details or error message.
     """
     try:
-        from weather_app.utils.weather_client import WeatherClient  # Import your weather client utility
         weather_client = WeatherClient()
         app.logger.info(f"Retrieving weather by location name: {location_name}")
         weather = favorite_locations_model.FavoriteLocations.get_weather_for_favorite(location_name, weather_client)
@@ -201,12 +201,9 @@ def get_weather_for_favorites() -> Response:
         JSON response with the list of favorite locations and their weather data.
     """
     try:
-        data = request.get_json()
-        user_id = data.get("user_id")
-
+        user_id = request.args.get("user_id")
         if not user_id:
             app.logger.error("Invalid input: 'user_id' is required.")
-            return make_response(jsonify({'error': 'Invalid input, user_id is required'}), 400)
 
         app.logger.info("Fetching weather data for all favorite locations for user_id %d", user_id)
 
