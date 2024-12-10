@@ -93,7 +93,6 @@ def add_location() -> Response:
             app.logger.error('Invalid input: user_id and location_name are required')
             return make_response(jsonify({'error': 'Invalid input, all fields are required with valid values'}), 400)
 
-        # Add the song to the playlist
         app.logger.info('Adding location:', location_name)
         favorite_locations_model.FavoriteLocations.add_favorite(user_id=user_id,location_name=location_name)
         app.logger.info("Location added to favorites: ", location_name)
@@ -127,13 +126,12 @@ def delete_location(user_id: int, location_name: str) -> Response:
 @app.route('/api/get-favorites', methods=['GET'])
 def get_all_favorites() -> Response:
     """
-    Route to retrieve all songs in the catalog (non-deleted), with an option to sort by play count.
+    Route to retrieve all locations in the user's favorite locations (non-deleted)
 
     Query Parameter:
-        - sort_by_play_count (bool, optional): If true, sort songs by play count.
 
     Returns:
-        JSON response with the list of songs or error message.
+        JSON response with the list of all favorite locations.
     """
     try:
         data = request.get_json()
@@ -149,22 +147,60 @@ def get_all_favorites() -> Response:
 @app.route('/api/get-favorite-by-id', methods=['GET'])
 def get_favorite_by_ID(location_id: int) -> Response:
     """
-    Route to retrieve a song by its ID.
+    Route to retrieve a favorite  location by its ID.
 
     Path Parameter:
-        - song_id (int): The ID of the song.
+        - location_id (int): The ID of the location.
 
     Returns:
-        JSON response with the song details or error message.
+        JSON response with the location details or error message.
     """
     try:
-        app.logger.info(f"Retrieving song by ID: {location_id}")
+        app.logger.info(f"Retrieving location by ID: {location_id}")
         location = favorite_locations_model.FavoriteLocations.get_favorite_by_id(location_id)
         return make_response(jsonify({'status': 'success', 'song': location}), 200)
     except Exception as e:
-        app.logger.error(f"Error retrieving song by ID: {e}")
+        app.logger.error(f"Error retrieving location by ID: {e}")
         return make_response(jsonify({'error': str(e)}), 500)
 
+@app.route('/api/get-weather-for-favorite', methods=['GET'])
+def get_weather_for_all_favs(user_ID) -> Response:
+    """
+    Route to retrieve the weather at a specific location from your favorites
+
+    Path Parameter:
+        - user_ID (int): The ID of the user
+
+    Returns:
+        JSON response with the locations' details or error message.
+    """
+    try:
+        app.logger.info(f"Retrieving weather for user: {user_ID}")
+        weather = favorite_locations_model.FavoriteLocations.get_all_favorites_with_weather(user_ID)
+        return make_response(jsonify({'status': 'success', 'Weather at locations are:': weather}), 200)
+    except Exception as e:
+        app.logger.error(f"Error retrieving weather at desired locations: {e}")
+        return make_response(jsonify({'error': str(e)}), 500)
+    
+@app.route('/api/get-all-favorites-with-weather', methods=['GET'])
+def get_weather_for_fav(location) -> Response:
+    """
+    Route to retrieve a the weather from all favorite locations.
+
+    Path Parameter:
+        - location (str): The name of the location.
+
+    Returns:
+        JSON response with the location details or error message.
+    """
+    try:
+        app.logger.info(f"Retrieving weather at: {location}")
+        weather = favorite_locations_model.FavoriteLocations.get_weather_for_favorite(location)
+        return make_response(jsonify({'status': 'success', 'Weather at location is': weather}), 200)
+    except Exception as e:
+        app.logger.error(f"Error retrieving weather at desired location: {e}")
+        return make_response(jsonify({'error': str(e)}), 500)
+    
 
 ############################################################
 #
@@ -175,7 +211,11 @@ def get_favorite_by_ID(location_id: int) -> Response:
 @app.route('/api/create-user', methods=['POST'])
 def create_user() -> Response:
     """
+<<<<<<< Updated upstream
     Route to create a new user.
+=======
+    Route to create a username and password. 
+>>>>>>> Stashed changes
 
     Expected JSON Input:
         - username (str): The username for the user.
@@ -257,12 +297,19 @@ def login() -> Response:
 @app.route('/api/update-password', methods=['PUT'])
 def update_password() -> Response:
     """
+<<<<<<< Updated upstream
     Route to update a user's password.
 
     Expected JSON Input:
         - username (str): The username of the user.
         - old_password (str): The current password of the user.
         - new_password (str): The new password for the user.
+=======
+    Route to remove a location from the user's favorite locations.
+
+    Path Parameter:
+        - username (str): User's username.
+>>>>>>> Stashed changes
 
     Returns:
         JSON response indicating the success of the password update.
