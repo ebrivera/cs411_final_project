@@ -93,6 +93,7 @@ def add_location() -> Response:
             app.logger.error('Invalid input: user_id and location_name are required')
             return make_response(jsonify({'error': 'Invalid input, all fields are required with valid values'}), 400)
 
+        # Add the song to the playlist
         app.logger.info('Adding location:', location_name)
         favorite_locations_model.FavoriteLocations.add_favorite(user_id=user_id,location_name=location_name)
         app.logger.info("Location added to favorites: ", location_name)
@@ -126,12 +127,13 @@ def delete_location(user_id: int, location_name: str) -> Response:
 @app.route('/api/get-favorites', methods=['GET'])
 def get_all_favorites() -> Response:
     """
-    Route to retrieve all locations in the user's favorite locations (non-deleted)
+    Route to retrieve all songs in the catalog (non-deleted), with an option to sort by play count.
 
     Query Parameter:
+        - sort_by_play_count (bool, optional): If true, sort songs by play count.
 
     Returns:
-        JSON response with the list of all favorite locations.
+        JSON response with the list of songs or error message.
     """
     try:
         data = request.get_json()
@@ -147,58 +149,75 @@ def get_all_favorites() -> Response:
 @app.route('/api/get-favorite-by-id', methods=['GET'])
 def get_favorite_by_ID(location_id: int) -> Response:
     """
-    Route to retrieve a favorite  location by its ID.
+    Route to retrieve a song by its ID.
 
     Path Parameter:
-        - location_id (int): The ID of the location.
+        - song_id (int): The ID of the song.
 
     Returns:
-        JSON response with the location details or error message.
+        JSON response with the song details or error message.
     """
     try:
-        app.logger.info(f"Retrieving location by ID: {location_id}")
+        app.logger.info(f"Retrieving song by ID: {location_id}")
         location = favorite_locations_model.FavoriteLocations.get_favorite_by_id(location_id)
         return make_response(jsonify({'status': 'success', 'song': location}), 200)
     except Exception as e:
-        app.logger.error(f"Error retrieving location by ID: {e}")
+        app.logger.error(f"Error retrieving song by ID: {e}")
         return make_response(jsonify({'error': str(e)}), 500)
 
 @app.route('/api/get-weather-for-favorite', methods=['GET'])
-def get_weather_for_all_favs(user_ID) -> Response:
+def get_weather_for_favorite(location_name) -> Response:
     """
-    Route to retrieve the weather at a specific location from your favorites
+    Route to retrieve the weather at a specific location by its name.
 
     Path Parameter:
-        - user_ID (int): The ID of the user
+        - location_name (str): The name of the desired location
 
     Returns:
-        JSON response with the locations' details or error message.
+        JSON response with the song details or error message.
     """
     try:
-        app.logger.info(f"Retrieving weather for user: {user_ID}")
-        weather = favorite_locations_model.FavoriteLocations.get_all_favorites_with_weather(user_ID)
-        return make_response(jsonify({'status': 'success', 'Weather at locations are:': weather}), 200)
+        from weather_app.utils.weather_client import WeatherClient  # Import your weather client utility
+        weather_client = WeatherClient()
+        app.logger.info(f"Retrieving weather by location name: {location_name}")
+        weather = favorite_locations_model.FavoriteLocations.get_weather_for_favorite(location_name, weather_client)
+        return make_response(jsonify({'status': 'success', 'Weather at desired location': weather}), 200)
     except Exception as e:
-        app.logger.error(f"Error retrieving weather at desired locations: {e}")
+        app.logger.error(f"Error retrieving weather at location by name: {e}")
         return make_response(jsonify({'error': str(e)}), 500)
     
-@app.route('/api/get-all-favorites-with-weather', methods=['GET'])
-def get_weather_for_fav(location) -> Response:
-    """
-    Route to retrieve a the weather from all favorite locations.
 
-    Path Parameter:
-        - location (str): The name of the location.
+@app.route('/api/get-all-favorites-with-weather', methods=['GET'])
+
+def get_weather_for_favorites() -> Response:
+    """
+    Route to retrieve weather information for all favorite locations of a user.
+
+    Expected JSON Input:
+        - user_id (int): The ID of the user.
 
     Returns:
-        JSON response with the location details or error message.
+        JSON response with the list of favorite locations and their weather data.
     """
     try:
-        app.logger.info(f"Retrieving weather at: {location}")
-        weather = favorite_locations_model.FavoriteLocations.get_weather_for_favorite(location)
-        return make_response(jsonify({'status': 'success', 'Weather at location is': weather}), 200)
+        data = request.get_json()
+        user_id = data.get("user_id")
+
+        if not user_id:
+            app.logger.error("Invalid input: 'user_id' is required.")
+            return make_response(jsonify({'error': 'Invalid input, user_id is required'}), 400)
+
+        app.logger.info("Fetching weather data for all favorite locations for user_id %d", user_id)
+
+        # Assuming you have an initialized WeatherClient instance (e.g., weather_client)
+        from weather_app.utils.weather_client import WeatherClient  # Import your weather client utility
+        weather_client = WeatherClient()
+
+        locations_with_weather = favorite_locations_model.FavoriteLocations.get_all_favorites_with_weather(user_id, weather_client)
+        return make_response(jsonify({'status': 'success', 'locations': locations_with_weather}), 200)
+
     except Exception as e:
-        app.logger.error(f"Error retrieving weather at desired location: {e}")
+        app.logger.error(f"Error retrieving weather data for favorites: {e}")
         return make_response(jsonify({'error': str(e)}), 500)
     
 
