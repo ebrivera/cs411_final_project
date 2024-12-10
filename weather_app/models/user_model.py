@@ -5,8 +5,6 @@ import logging
 import os
 
 from sqlalchemy.exc import IntegrityError
-
-
 from weather_app.utils.logger import configure_logger
 
 logger = logging.getLogger(__name__)
