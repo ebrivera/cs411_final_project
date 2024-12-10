@@ -282,8 +282,14 @@ def login() -> Response:
     if not username or not password:
             app.logger.error("Invalid login payload.")
             raise BadRequest("Both username and password are required.")
-
-
+    
+    if Users.check_password(username, password):
+            user_id = Users.get_id_by_username(username)
+            app.logger.info(f"User '{username}' logged in successfully")
+            return make_response(jsonify({'status': 'success', 'message': 'Login successful', 'user_id': user_id}), 200)
+    else:
+        app.logger.warning(f"Invalid login attempt for username '{username}'")
+        return make_response(jsonify({'status': 'error', 'error': 'Invalid username or password'}), 401)
     try:
         if Users.check_password(username, password):
             user_id = Users.get_id_by_username(username)
