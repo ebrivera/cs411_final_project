@@ -263,28 +263,25 @@ def login() -> Response:
         500 error for any unexpected server-side issues.
     """
     data = request.get_json()
-    if not data or 'username' not in data or 'password' not in data:
-        app.logger.error("Invalid request payload for login.")
-        raise BadRequest("Invalid request payload. 'username' and 'password' are required.")
+    username = data.get('username')
+    password = data.get('password')
 
-    username = data['username']
-    password = data['password']
+    if not username or not password:
+            app.logger.error("Invalid login payload.")
+            raise BadRequest("Both username and password are required.")
+
 
     try:
-        # Validate user credentials
-        if not Users.check_password(username, password):
-            app.logger.warning("Login failed for username: %s", username)
+        if Users.check_password(username, password):
+            user_id = Users.get_id_by_username(username)
+            app.logger.info(f"User '{username}' logged in successfully.")
+            return make_response(jsonify({
+                "status": "success",
+                "message": f"Welcome, {username}",
+                "user_id": user_id
+            }), 200)
+        else:
             raise Unauthorized("Invalid username or password.")
-
-        # Get user ID
-        user_id = Users.get_id_by_username(username)
-        app.logger.info(f"User '{username}' logged in successfully.")
-        return make_response(jsonify({
-            "status": "success",
-            "message": f"Welcome, {username}",
-            "user_id": user_id
-        }), 200)
-
     except Unauthorized as e:
         return jsonify({"error": str(e)}), 401
     except Exception as e:
@@ -297,19 +294,10 @@ def login() -> Response:
 @app.route('/api/update-password', methods=['PUT'])
 def update_password() -> Response:
     """
-<<<<<<< Updated upstream
-    Route to update a user's password.
-
-    Expected JSON Input:
-        - username (str): The username of the user.
-        - old_password (str): The current password of the user.
-        - new_password (str): The new password for the user.
-=======
     Route to remove a location from the user's favorite locations.
 
     Path Parameter:
         - username (str): User's username.
->>>>>>> Stashed changes
 
     Returns:
         JSON response indicating the success of the password update.
