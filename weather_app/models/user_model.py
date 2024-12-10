@@ -1,16 +1,21 @@
 import hashlib
+from flask_sqlalchemy import SQLAlchemy
+from flask import Flask
 import logging
 import os
 
 from sqlalchemy.exc import IntegrityError
 
 
-from weather_app import db
 from weather_app.utils.logger import configure_logger
 
 logger = logging.getLogger(__name__)
 configure_logger(logger)
 
+app = Flask(__name__)
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///song_catalog.db'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+db = SQLAlchemy(app)
 
 class User(db.Model):
     __tablename__ = 'users'
