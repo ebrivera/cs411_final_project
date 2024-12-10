@@ -70,18 +70,3 @@ class WeatherClient:
             self.logger.error("Unexpected response structure: %s", str(e))
             raise ValueError("Unexpected response structure from weather API")
 
-
-# Example usage (you can remove this part in production):
-if __name__ == "__main__":
-    logging.basicConfig(level=logging.INFO)
-
-    # Replace with your actual API key
-    API_KEY = "your_openweathermap_api_key"
-
-    weather_client = WeatherClient(api_key=API_KEY)
-    try:
-        weather = weather_client.get_weather("London")
-        print(weather)
-    except ValueError as e:
-        print(str(e))
-
