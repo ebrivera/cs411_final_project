@@ -230,11 +230,7 @@ def get_weather_for_favorites() -> Response:
 @app.route('/api/create-user', methods=['POST'])
 def create_user() -> Response:
     """
-<<<<<<< Updated upstream
     Route to create a new user.
-=======
-    Route to create a username and password. 
->>>>>>> Stashed changes
 
     Expected JSON Input:
         - username (str): The username for the user.
