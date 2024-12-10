@@ -150,20 +150,20 @@ def get_all_favorites() -> Response:
 @app.route('/api/get-favorite-by-id', methods=['GET'])
 def get_favorite_by_ID(location_id: int) -> Response:
     """
-    Route to retrieve a song by its ID.
+    Route to retrieve a location by its ID.
 
     Path Parameter:
-        - song_id (int): The ID of the song.
+        - location_id (int): The ID of the location.
 
     Returns:
-        JSON response with the song details or error message.
+        JSON response with the location weather or error message.
     """
     try:
-        app.logger.info(f"Retrieving song by ID: {location_id}")
-        location = favorite_locations_model.FavoriteLocations.get_favorite_by_id(location_id)
-        return make_response(jsonify({'status': 'success', 'song': location}), 200)
+        app.logger.info(f"Retrieving weather at location: {location_id}")
+        weather = favorite_locations_model.FavoriteLocations.get_favorite_by_id(location_id)
+        return make_response(jsonify({'status': 'success', 'song': weather}), 200)
     except Exception as e:
-        app.logger.error(f"Error retrieving song by ID: {e}")
+        app.logger.error(f"Error retrieving location by ID: {e}")
         return make_response(jsonify({'error': str(e)}), 500)
 
 @app.route('/api/get-weather-for-favorite', methods=['GET'])
