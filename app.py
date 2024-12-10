@@ -5,7 +5,7 @@ import logging
 
 from weather_app import db
 from weather_app.models import favorite_locations_model
-from weather_app.models import user_model
+from weather_app.models.user_model import Users
 from weather_app.utils.sql_utils import check_database_connection, check_table_exists
 
 
@@ -14,7 +14,6 @@ load_dotenv()
 
 # Initialize Flask app
 app = Flask(__name__)
-
 
 ####################################################
 #
@@ -55,7 +54,6 @@ def db_check() -> Response:
         check_table_exists("users")
         app.logger.info("Users table exists")
         app.logger.info("Checking if favorite_locations table exists")
-        check_table_exists("favorite_locations")
         check_table_exists("favorite_locations")
         app.logger.info("Favorite_locations table exists")
         return make_response(jsonify({'database_status': 'healthy'}), 200)
@@ -118,8 +116,6 @@ def delete_location(user_id: int, location_name: str) -> Response:
         JSON response indicating success of the operation or error message.
     """
     try:
-        data = request.get_json()
-        user_id = data.get("user_id")
         app.logger.info(f"Deleting location by name: {location_name}")
         favorite_locations_model.FavoriteLocations.delete_favorite(user_id=user_id,location_name=location_name)
         return make_response(jsonify({'status': 'success'}), 200)
@@ -177,99 +173,121 @@ def get_favorite_by_ID(location_id: int) -> Response:
 ############################################################
 
 @app.route('/api/create-user', methods=['POST'])
-def create_user(username, password) -> Response:
+def create_user() -> Response:
     """
-    Route to add a song to the playlist by compound key (artist, title, year).
+    Route to create a new user.
 
     Expected JSON Input:
-        - artist (str): The artist's name.
-        - title (str): The song title.
-        - year (int): The year the song was released.
+        - username (str): The username for the user.
+        - password (str): The password for the user.
 
     Returns:
-        JSON response indicating success of the addition or error message.
+        JSON response indicating the success of user creation.
+    Raises:
+        400 error if input validation fails.
+        500 error if there is an issue creating the user.
     """
     try:
+        data = request.get_json()
+        username = data.get('username')
+        password = data.get('password')
 
-        if not password or not username:
-            return make_response(jsonify({'error': 'Invalid input. Username and password are required.'}), 400)
+        if not username or not password:
+            app.logger.error("Invalid input: 'username' and 'password' are required.")
+            return make_response(jsonify({'error': 'Invalid input, both username and password are required'}), 400)
 
-        user = user_model.User.create_user(username=username, password=password)
-
-
-        app.logger.info(f"User created: {user}")
-        return make_response(jsonify({'status': 'success', 'message': 'User created'}), 201)
-
+        app.logger.info(f"Creating user: {username}")
+        Users.create_user(username, password)
+        app.logger.info(f"User created successfully: {username}")
+        return make_response(jsonify({'status': 'user added', 'username': username}), 201)
+    
     except Exception as e:
         app.logger.error(f"Error creating user: {e}")
         return make_response(jsonify({'error': str(e)}), 500)
 
-@app.route('/api/check-password', methods=['GET'])
-def check_pass(username, password) -> Response:
+@app.route('/api/login', methods=['POST'])
+def login() -> Response:
     """
-    Route to remove a song from the playlist by compound key (artist, title, year).
+    Route to log in a user and load their combatants.
 
     Expected JSON Input:
-        - artist (str): The artist's name.
-        - title (str): The song title.
-        - year (int): The year the song was released.
+        - username (str): The username of the user.
+        - password (str): The user's password.
 
     Returns:
-        JSON response indicating success of the removal or error message.
+        JSON response indicating the success of the login.
+
+       Raises:
+        400 error if input validation fails.
+        401 error if authentication fails (invalid username or password).
+        500 error for any unexpected server-side issues.
     """
+    data = request.get_json()
+    if not data or 'username' not in data or 'password' not in data:
+        app.logger.error("Invalid request payload for login.")
+        raise BadRequest("Invalid request payload. 'username' and 'password' are required.")
+
+    username = data['username']
+    password = data['password']
+
     try:
+        # Validate user credentials
+        if not Users.check_password(username, password):
+            app.logger.warning("Login failed for username: %s", username)
+            raise Unauthorized("Invalid username or password.")
 
-        if not username or not password:
-            return make_response(jsonify({'error': 'Invalid input. Username and password are required.'}), 400)
+        # Get user ID
+        user_id = Users.get_id_by_username(username)
+        app.logger.info(f"User '{username}' logged in successfully.")
+        return make_response(jsonify({
+            "status": "success",
+            "message": f"Welcome, {username}",
+            "user_id": user_id
+        }), 200)
 
-        password2 = user_model.User.check_password(username=username, password=password)
-        if password2==password:
-            app.logger.info(f"Passwords checked: {password} and {password2})")
-            return make_response(jsonify({'status': 'success', 'message': 'Passwords match."'}), 200)
-
+    except Unauthorized as e:
+        return jsonify({"error": str(e)}), 401
     except Exception as e:
-        app.logger.error(f"Error checking password: {e}")
-        return make_response(jsonify({'error': str(e)}), 500)
+        app.logger.error("Error during login for username %s: %s", username, str(e))
+        return jsonify({"error": "An unexpected error occurred."}), 500
 
-@app.route('/api/get-id-by-username', methods=['GET'])
-def get_id_by_user(username) -> Response:
+
+
+
+@app.route('/api/update-password', methods=['PUT'])
+def update_password() -> Response:
     """
-    Route to remove a song from the playlist by track number.
+    Route to update a user's password.
 
-    Path Parameter:
-        - track_number (int): The track number of the song to remove.
+    Expected JSON Input:
+        - username (str): The username of the user.
+        - old_password (str): The current password of the user.
+        - new_password (str): The new password for the user.
 
     Returns:
-        JSON response indicating success of the removal or an error message.
+        JSON response indicating the success of the password update.
     """
     try:
-        app.logger.info(f"Getting ID for uername: {username}")
+        data = request.get_json()
+        username = data.get('username')
+        old_password = data.get('old_password')
+        new_password = data.get('new_password')
 
-        ID = user_model.User.get_id_by_username(username=username)
+        if not username or not old_password or not new_password:
+            app.logger.error("Invalid input: 'username', 'old_password', and 'new_password' are required.")
+            raise BadRequest("All fields ('username', 'old_password', 'new_password') are required.")
 
-        return make_response(jsonify({'status': 'success', 'message': f'ID for user {username} is {ID}'}), 200)
+        # Verify current password
+        if not user_model.User.check_password(username=username, password=old_password):
+            app.logger.warning(f"Password mismatch for user '{username}'.")
+            raise Unauthorized("Current password is incorrect.")
 
-    except ValueError as e:
-        app.logger.error(f"Error getting ID for user {username}: {e}")
-        return make_response(jsonify({'error': str(e)}), 404)
+        # Update password
+        user_model.User.update_password(username=username, new_password=new_password)
+        app.logger.info(f"Password updated successfully for user '{username}'.")
+
+        return make_response(jsonify({'status': 'success', 'message': 'Password updated successfully'}), 200)
     except Exception as e:
-        app.logger.error(f"Error geting ID for user: {e}")
+        app.logger.error(f"Error updating password: {e}")
         return make_response(jsonify({'error': str(e)}), 500)
 
-@app.route('/api/update-password', methods=['POST'])
-def update_password(user,password,newpass) -> Response:
-    """
-    Route to clear all songs from the playlist.
-
-    Returns:
-        JSON response indicating success of the operation or an error message.
-    """
-    try:
-        app.logger.info('Updating password')
-        if user_model.User.check_password(username=user, password=password) == True:
-            user_model.User.update_password(username=user, new_password=newpass)
-            return make_response(jsonify({'status': 'success', 'message': f'Password changed for {user}'}), 200)
-
-    except Exception as e:
-        app.logger.error(f"Error clearing the playlist: {e}")
-        return make_response(jsonify({'error': str(e)}), 500)
