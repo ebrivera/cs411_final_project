@@ -325,12 +325,12 @@ def update_password() -> Response:
             raise BadRequest("All fields ('username', 'old_password', 'new_password') are required.")
 
         # Verify current password
-        if not user_model.User.check_password(username=username, password=old_password):
+        if not Users.check_password(username=username, password=old_password):
             app.logger.warning(f"Password mismatch for user '{username}'.")
             raise Unauthorized("Current password is incorrect.")
 
         # Update password
-        user_model.User.update_password(username=username, new_password=new_password)
+        Users.update_password(username=username, new_password=new_password)
         app.logger.info(f"Password updated successfully for user '{username}'.")
 
         return make_response(jsonify({'status': 'success', 'message': 'Password updated successfully'}), 200)
