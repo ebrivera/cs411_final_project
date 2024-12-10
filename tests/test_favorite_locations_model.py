@@ -1,13 +1,13 @@
 import pytest
 
-from music_collection.models.playlist_model import PlaylistModel
-from music_collection.models.song_model import Song
+from weather_app.models.favorite_locations_model import FavoriteLocations
+from weather_app.models.user_model import User
 
 
 @pytest.fixture()
-def playlist_model():
+def Favorite_Locations():
     """Fixture to provide a new instance of PlaylistModel for each test."""
-    return PlaylistModel()
+    return FavoriteLocations()
 
 @pytest.fixture
 def mock_update_play_count(mocker):
@@ -16,7 +16,7 @@ def mock_update_play_count(mocker):
 
 """Fixtures providing sample songs for the tests."""
 @pytest.fixture
-def sample_song1():
+def sample_location():
     return Song(1, 'Artist 1', 'Song 1', 2022, 'Pop', 180)
 
 @pytest.fixture
