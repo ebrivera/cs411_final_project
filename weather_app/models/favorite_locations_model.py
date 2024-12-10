@@ -5,6 +5,7 @@ from dataclasses import asdict, dataclass
 from sqlalchemy.exc import IntegrityError
 from weather_app import db
 from weather_app.utils.logger import configure_logger
+from weather_app.utils.weather_client import WeatherClient
 
 
 logger = logging.getLogger(__name__)
@@ -148,7 +149,7 @@ class FavoriteLocations(db.Model):
         """
         logger.info("Fetching weather for location '%s'", location_name)
         try:
-            weather_data = weather_client.get_weather(location_name)
+            weather_data = WeatherClient.get_weather(location_name)
             logger.info("Weather data for '%s': %s", location_name, weather_data)
             return weather_data
         except Exception as e:

@@ -7,6 +7,7 @@ from weather_app import db
 from weather_app.models import favorite_locations_model
 from weather_app.models.user_model import Users
 from weather_app.utils.sql_utils import check_database_connection, check_table_exists
+from weather_app.utils.weather_client import WeatherClient
 
 
 # Load environment variables from .env file
