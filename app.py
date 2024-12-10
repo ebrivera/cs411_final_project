@@ -275,34 +275,22 @@ def login() -> Response:
         401 error if authentication fails (invalid username or password).
         500 error for any unexpected server-side issues.
     """
-    data = request.get_json()
-    username = data.get('username')
-    password = data.get('password')
+    try: 
+        data = request.get_json()
+        username = data.get('username')
+        password = data.get('password')
 
-    if not username or not password:
-            app.logger.error("Invalid login payload.")
-            raise BadRequest("Both username and password are required.")
-    
-    if Users.check_password(username, password):
-            user_id = Users.get_id_by_username(username)
-            app.logger.info(f"User '{username}' logged in successfully")
-            return make_response(jsonify({'status': 'success', 'message': 'Login successful', 'user_id': user_id}), 200)
-    else:
-        app.logger.warning(f"Invalid login attempt for username '{username}'")
-        return make_response(jsonify({'status': 'error', 'error': 'Invalid username or password'}), 401)
-    try:
+        if not username or not password:
+                app.logger.error("Invalid login payload.")
+                raise BadRequest("Both username and password are required.")
+        
         if Users.check_password(username, password):
-            user_id = Users.get_id_by_username(username)
-            app.logger.info(f"User '{username}' logged in successfully.")
-            return make_response(jsonify({
-                "status": "success",
-                "message": f"Welcome, {username}",
-                "user_id": user_id
-            }), 200)
+                user_id = Users.get_id_by_username(username)
+                app.logger.info(f"User '{username}' logged in successfully")
+                return make_response(jsonify({'status': 'success', 'message': 'Login successful', 'user_id': user_id}), 200)
         else:
-            raise Unauthorized("Invalid username or password.")
-    except Unauthorized as e:
-        return jsonify({"error": str(e)}), 401
+            app.logger.warning(f"Invalid login attempt for username '{username}'")
+            return make_response(jsonify({'status': 'error', 'error': 'Invalid username or password'}), 401)
     except Exception as e:
         app.logger.error("Error during login for username %s: %s", username, str(e))
         return jsonify({"error": "An unexpected error occurred."}), 500
