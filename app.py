@@ -10,6 +10,7 @@ from weather_app.utils.sql_utils import check_database_connection, check_table_e
 from weather_app.utils.weather_client import WeatherClient
 
 from config import ProductionConfig
+from weather_app.utils.weather_client import WeatherClient 
 # Load environment variables from .env file
 load_dotenv()
 def create_app(config_class=ProductionConfig):
@@ -211,8 +212,8 @@ def create_app(config_class=ProductionConfig):
 
             app.logger.info("Fetching weather data for all favorite locations for user_id %d", user_id)
 
-            # Assuming you have an initialized WeatherClient instance (e.g., weather_client)
-            from weather_app.utils.weather_client import WeatherClient  # Import your weather client utility
+
+            
             weather_client = WeatherClient()
 
             locations_with_weather = favorite_locations_model.FavoriteLocations.get_all_favorites_with_weather(user_id, weather_client)
