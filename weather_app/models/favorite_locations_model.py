@@ -53,16 +53,19 @@ class FavoriteLocations(db.Model):
 
         Raises:
             ValueError: If the location is already a favorite.
+            IntegrityError: If the user_id does not exist in the users table.
         """
-
         logger.info("Adding favorite location '%s' for user_id %d", location_name, user_id)
         favorite = cls(user_id=user_id, location_name=location_name)
         try:
             db.session.add(favorite)
             db.session.commit()
             logger.info("Successfully added favorite location '%s' for user_id %d", location_name, user_id)
-        except IntegrityError:
+        except IntegrityError as e:
             db.session.rollback()
+            if "FOREIGN KEY constraint failed" in str(e):  # Handle the foreign key error specifically
+                logger.error("Foreign key constraint failed for user_id %d", user_id)
+                raise
             logger.error("Location '%s' already exists for user_id %d", location_name, user_id)
             raise ValueError(f"Location '{location_name}' is already a favorite.")
         except Exception as e:
