@@ -6,7 +6,7 @@ class ProductionConfig():
     SQLALCHEMY_TRACK_MODIFICATIONS = True  # This would almost universally be false in a Flask app
                                            # But we are doing unnecessarily complicated Redis
                                            # write-throughs
-    SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URL', "sqlite:////app/db/app.db")
+    SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URL', "sqlite:////" + os.path.abspath(os.path.dirname(__file__)) + "/weather_app.db")
 
 class TestConfig():
     """Testing configuration."""
