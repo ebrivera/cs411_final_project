@@ -138,7 +138,7 @@ class FavoriteLocations(db.Model):
     ##################################################
     # Weather API Integration
     ##################################################
-@classmethod
+    @classmethod
     def get_weather_for_favorite(cls, location_name: str):
         """
         Retrieves the weather data for a favorite location.
