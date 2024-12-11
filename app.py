@@ -336,6 +336,8 @@ def create_app(config_class=ProductionConfig):
         except Exception as e:
             app.logger.error(f"Error updating password: {e}")
             return make_response(jsonify({'error': str(e)}), 500)
+        
+    return app
 
 if __name__ == '__main__':
     app = create_app()
