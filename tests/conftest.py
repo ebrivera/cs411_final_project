@@ -1,8 +1,8 @@
 import pytest
 
-from app import app as create_app
+from app import create_app
 from config import TestConfig
-from weather_app.models import db
+from weather_app.db import db
 
 @pytest.fixture
 def app():

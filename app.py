@@ -3,7 +3,7 @@ from flask import Flask, jsonify, make_response, Response, request
 from werkzeug.exceptions import BadRequest, Unauthorized
 import logging
 
-from weather_app import db
+from weather_app.db import db
 from weather_app.models import favorite_locations_model
 from weather_app.models.user_model import User
 from weather_app.utils.sql_utils import check_database_connection, check_table_exists
