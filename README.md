@@ -220,6 +220,7 @@ The project is fully Dockerized and includes unit and smoke tests for quality as
     SQL_CREATE_TABLE_PATH=./sql/create_tables.sql
     CREATE_DB=true
     API_KEY=<your api key here>
+    DATABASE_URL=sqlite:///db/weather_app.db
    ```
 3. Build the Docker container:
    ```bash
