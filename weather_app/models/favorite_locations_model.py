@@ -138,9 +138,8 @@ class FavoriteLocations(db.Model):
     ##################################################
     # Weather API Integration
     ##################################################
-
-    @classmethod
-    def get_weather_for_favorite(cls, location_name: str, weather_client: Any) -> dict[str, Any]:
+@classmethod
+    def get_weather_for_favorite(cls, location_name: str):
         """
         Retrieves the weather data for a favorite location.
 
@@ -164,7 +163,7 @@ class FavoriteLocations(db.Model):
             raise ValueError(f"Error fetching weather for location '{location_name}': {str(e)}")
         
     @classmethod
-    def get_all_favorites_with_weather(cls, user_id: int, weather_client: Any) -> List[dict[str, Any]]:
+    def get_all_favorites_with_weather(cls, user_id: int):
         """
         Retrieves all favorite locations for a user along with their weather data.
 
@@ -177,5 +176,72 @@ class FavoriteLocations(db.Model):
         """
         favorites = cls.get_favorites(user_id)
         for fav in favorites:
-            fav['weather'] = cls.get_weather_for_favorite(fav['location_name'], weather_client)
-        return favorites    
+            fav['weather'] = cls.get_weather_for_favorite(fav['location_name'])
+        return favorites
+    
+    @classmethod
+
+    def get_hourly_forecast(cls, location_name):
+          """
+        Retrieves hourly forecast for a specified location.
+
+        Args:
+            location_name (str): The name of the location
+
+
+        Returns:
+            Weather data
+        """
+          logger.info("Fetching weather for location '%s'", location_name)
+          try:
+            weather_data = WeatherClient.get_hourly_forecast(location_name)
+            logger.info("Weather data for '%s': %s", location_name, weather_data)
+            return weather_data
+          except Exception as e:
+            logger.error("Error fetching weather for location '%s': %s", location_name, str(e))
+            raise ValueError(f"Error fetching weather for location '{location_name}': {str(e)}")
+    
+    @classmethod
+
+    def get_daily_forecast(cls, location_name):
+          """
+        Retrieves daily forecast for a specified location.
+
+        Args:
+            location_name (str): The name of the location
+
+        Returns:
+           Weather data
+        """
+          logger.info("Fetching weather for location '%s'", location_name)
+          try:
+            weather_data = WeatherClient.get_hourly_forecast(location_name)
+            logger.info("Weather data for '%s': %s", location_name, weather_data)
+            return weather_data
+          except Exception as e:
+            logger.error("Error fetching weather for location '%s': %s", location_name, str(e))
+            raise ValueError(f"Error fetching weather for location '{location_name}': {str(e)}")
+    
+    @classmethod
+
+    def get_dated_forecast(cls, location_name, date_tm):
+          """
+        Retrieves daily forecast for a specified location and date up to 45 years in the past and 1.5 years in the future.
+
+        Args:
+            location_name (str): The name of the location
+            date_tm (str): The date in YYYY-MM-DD format
+
+        Returns:
+           Weather data
+        """
+          logger.info("Fetching weather for location '%s'", location_name)
+          try:
+            weather_data = WeatherClient.get_date_forecast(location_name, date_tm)
+            logger.info("Weather data for '%s': %s", location_name, weather_data)
+            return weather_data
+          except Exception as e:
+            logger.error("Error fetching weather for location '%s': %s", location_name, str(e))
+            raise ValueError(f"Error fetching weather for location '{location_name}': {str(e)}")
+
+

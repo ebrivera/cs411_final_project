@@ -10,13 +10,13 @@ from geopy.geocoders import Nominatim
 
 load_dotenv()
 def get_lat_long(location_name):
-        geolocator = Nominatim(user_agent="my_geocoder")
-        location = geolocator.geocode(location_name)
+    geolocator = Nominatim(user_agent="my_geocoder")
+    location = geolocator.geocode(location_name)
 
-        if location:
-            return location.latitude, location.longitude
-        else:
-            return None
+    if location:
+        return location.latitude, location.longitude
+    else:
+        return None
 
 
 
