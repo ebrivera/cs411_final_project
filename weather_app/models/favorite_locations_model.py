@@ -134,7 +134,7 @@ class FavoriteLocations(db.Model):
     # Weather API Integration
     ##################################################
     @classmethod
-    def get_weather_for_favorite(cls, location_name: str):
+    def get_weather_for_favorite(cls, location_name: str, weather_client: Any):
         """
         Retrieves the weather data for a favorite location.
 
@@ -150,7 +150,7 @@ class FavoriteLocations(db.Model):
         """
         logger.info("Fetching weather for location '%s'", location_name)
         try:
-            weather_data = WeatherClient.get_weather(location_name)
+            weather_data = weather_client.get_weather(location_name)
             logger.info("Weather data for '%s': %s", location_name, weather_data)
             return weather_data
         except Exception as e:
@@ -158,7 +158,7 @@ class FavoriteLocations(db.Model):
             raise ValueError(f"Error fetching weather for location '{location_name}': {str(e)}")
         
     @classmethod
-    def get_all_favorites_with_weather(cls, user_id: int):
+    def get_all_favorites_with_weather(cls, user_id: int, weather_client: Any):
         """
         Retrieves all favorite locations for a user along with their weather data.
 
@@ -171,7 +171,7 @@ class FavoriteLocations(db.Model):
         """
         favorites = cls.get_favorites(user_id)
         for fav in favorites:
-            fav['weather'] = cls.get_weather_for_favorite(fav['location_name'])
+            fav['weather'] = cls.get_weather_for_favorite(fav['location_name'], weather_client)
         return favorites
     
     @classmethod
