@@ -4,6 +4,7 @@ Weather App is a Flask-based API that allows users to manage their favorite loca
 We are using the an external api (One Call API by OpenWeatherMap, the one outlined in the project example) for weather retrieval.
 This App includes functionality for user management, weather retrieval, user login, and favorite location management.
 The project is fully Dockerized and includes unit and smoke tests for quality assurance.
+There was a point where I utilized a LLM, and i asked it this prompt "please help me and walk me through how I can write a read me for my routes, by teaching me how to utilize MarkDown meanwhile also helping me to add value to the read me given the expected information is Request Type, Purpose, Request Body, Reponse Format, Example Request and Example Response"
 
 ---
 
