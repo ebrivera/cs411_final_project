@@ -9,11 +9,11 @@ from weather_app.models.user_model import User
 from weather_app.utils.sql_utils import check_database_connection, check_table_exists
 from weather_app.utils.weather_client import WeatherClient
 
-from config import ProductionConfig
+from config import TestConfig
 from weather_app.utils.weather_client import WeatherClient 
 # Load environment variables from .env file
 load_dotenv()
-def create_app(config_class=ProductionConfig):
+def create_app(config_class=TestConfig):
     app = Flask(__name__)
     app.config.from_object(config_class)
 
