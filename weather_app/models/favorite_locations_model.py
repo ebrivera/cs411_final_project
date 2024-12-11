@@ -222,3 +222,25 @@ class FavoriteLocations(db.Model):
           except Exception as e:
             logger.error("Error fetching weather for location '%s': %s", location_name, str(e))
             raise ValueError(f"Error fetching weather for location '{location_name}': {str(e)}")
+    
+    @classmethod
+
+    def get_dated_forecast(cls, location_name, date_tm):
+          """
+        Retrieves daily forecast for a specified location and date up to 45 years in the past and 1.5 years in the future.
+
+        Args:
+            location_name (str): The name of the location
+            date_tm (str): The date in YYYY-MM-DD format
+
+        Returns:
+           Weather data
+        """
+          logger.info("Fetching weather for location '%s'", location_name)
+          try:
+            weather_data = WeatherClient.get_date_forecast(location_name, date_tm)
+            logger.info("Weather data for '%s': %s", location_name, weather_data)
+            return weather_data
+          except Exception as e:
+            logger.error("Error fetching weather for location '%s': %s", location_name, str(e))
+            raise ValueError(f"Error fetching weather for location '{location_name}': {str(e)}")
