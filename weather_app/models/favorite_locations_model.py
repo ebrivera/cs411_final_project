@@ -140,7 +140,7 @@ class FavoriteLocations(db.Model):
     ##################################################
 
     @classmethod
-    def get_weather_for_favorite(cls, location_name: str, weather_client: Any) -> dict[str, Any]:
+    def get_weather_for_favorite(cls, location_name: str) -> dict[str, Any]:
         """
         Retrieves the weather data for a favorite location.
 
@@ -164,7 +164,7 @@ class FavoriteLocations(db.Model):
             raise ValueError(f"Error fetching weather for location '{location_name}': {str(e)}")
         
     @classmethod
-    def get_all_favorites_with_weather(cls, user_id: int, weather_client: Any):
+    def get_all_favorites_with_weather(cls, user_id: int):
         """
         Retrieves all favorite locations for a user along with their weather data.
 
@@ -177,7 +177,7 @@ class FavoriteLocations(db.Model):
         """
         favorites = cls.get_favorites(user_id)
         for fav in favorites:
-            fav['weather'] = cls.get_weather_for_favorite(fav['location_name'], weather_client)
+            fav['weather'] = cls.get_weather_for_favorite(fav['location_name'])
         return favorites
     
     @classmethod
