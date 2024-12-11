@@ -29,7 +29,7 @@ The project is fully Dockerized and includes unit and smoke tests for quality as
 
 ## Routes
 
-### 1. Health Checks
+## 1. Health Checks
 
 #### Route: `/api/health`
 

@@ -1,11 +1,10 @@
 import pytest
-from weather_app.models.user_model import User
-from sqlalchemy.exc import IntegrityError
+
+from weather_app.models.user_model import Users
 
 
 @pytest.fixture
 def sample_user():
-    """Fixture to provide a sample user."""
     return {
         "username": "testuser",
         "password": "securepassword123"
