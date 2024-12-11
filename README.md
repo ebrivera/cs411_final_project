@@ -227,7 +227,7 @@ The project is fully Dockerized and includes unit and smoke tests for quality as
    ```
 4. Run the container:
    ```bash
-   docker run -p 5000:5000 weather-app
+   docker run -p 5001:5001 weather-app
    ```
 
 ---
@@ -237,5 +237,6 @@ The project is fully Dockerized and includes unit and smoke tests for quality as
 Run the tests using:
 
 ```bash
-python -m pytest tests/
+python -m pytest tests/test_favorite_locations_model.py
+python -m pytest tests/test_user_model.py
 ```
