@@ -3,7 +3,7 @@ import logging
 from typing import Any, Dict
 from dotenv import load_dotenv
 import os
-from logger import configure_logger
+from weather_app.utils.logger import configure_logger
 from geopy.geocoders import Nominatim
 
 

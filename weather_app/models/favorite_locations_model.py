@@ -1,21 +1,16 @@
 import logging
 from typing import List, Any
 from dataclasses import asdict, dataclass
-from flask_sqlalchemy import SQLAlchemy
-from flask import Flask
 
 from sqlalchemy.exc import IntegrityError
 from weather_app.utils.logger import configure_logger
 from weather_app.utils.weather_client import WeatherClient
+from weather_app.db import db
+
 
 
 logger = logging.getLogger(__name__)
 configure_logger(logger)
-
-app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///song_catalog.db'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-db = SQLAlchemy(app)
 
 
 @dataclass
