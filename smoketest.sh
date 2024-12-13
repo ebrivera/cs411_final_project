@@ -6,6 +6,55 @@ BASE_URL="http://localhost:5001/api"
 # Flag to control whether to echo JSON output
 ECHO_JSON=false
 
+###############################################
+#
+# Database Reset Function
+#
+###############################################
+
+reset_database() {
+  echo "Resetting the database..."
+  
+  # Debug: Display the current values of DB_PATH and SQL_CREATE_TABLE_PATH
+  echo "DB_PATH is: $DB_PATH"
+  echo "SQL_CREATE_TABLE_PATH is: $SQL_CREATE_TABLE_PATH"
+  
+  # Check if the database file exists and remove it
+  if [ -f "$DB_PATH" ]; then
+    rm "$DB_PATH"
+    echo "Existing database file removed."
+  fi
+  
+  # Recreate the database
+  if [ -f "$SQL_CREATE_TABLE_PATH" ]; then
+    sqlite3 "$DB_PATH" < "$SQL_CREATE_TABLE_PATH"
+    if [ $? -eq 0 ]; then
+      echo "Database created successfully."
+    else
+      echo "Error: Failed to create database."
+      exit 1
+    fi
+  else
+    echo "Error: SQL_CREATE_TABLE_PATH does not exist."
+    exit 1
+  fi
+  
+  echo "Database reset successfully."
+  
+  # Restart Flask app to reload the database
+  echo "Restarting Flask app..."
+  pkill -f "python app.py"  # Stop any running Flask app
+  nohup python app.py &>/dev/null &  # Start Flask app in the background
+  sleep 3  # Wait for Flask app to restart
+  echo "Flask app restarted."
+}
+
+###############################################
+#
+# Command-line Arguments
+#
+###############################################
+
 # Parse command-line arguments
 while [ "$#" -gt 0 ]; do
   case $1 in
@@ -15,17 +64,19 @@ while [ "$#" -gt 0 ]; do
   shift
 done
 
+# Reset the database
+reset_database
+
 ###############################################
 #
 # Helper Function
 #
 ###############################################
 
-function fail() {
+fail() {
   echo "$1"
   exit 1
 }
-
 
 ###############################################
 #
@@ -33,14 +84,12 @@ function fail() {
 #
 ###############################################
 
-# Function to check the health of the service
 check_health() {
   echo "Checking health status..."
   curl -s -X GET "$BASE_URL/health" | grep -q '"status": "healthy"' || fail "Health check failed."
   echo "Service is healthy."
 }
 
-# Function to check the database connection
 check_db() {
   echo "Checking database connection..."
   curl -s -X GET "$BASE_URL/db-check" | grep -q '"database_status": "healthy"' || fail "Database connection failed."
@@ -142,19 +191,19 @@ get_all_favorites_with_weather() {
 check_health
 check_db
 
-# User Management
+# User Management Tests
 create_user
 login_user
 update_password
 
-# Favorite Locations
+# Favorite Locations Tests
 add_favorite_location
 get_favorite_locations
 delete_favorite_location
 
-# Weather Integration
+# Weather Integration Tests
 add_favorite_location
 get_weather_for_favorite
 get_all_favorites_with_weather
 
-echo "All smoketests passed!"
+echo "All smoketests passed successfully!"

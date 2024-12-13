@@ -173,23 +173,27 @@ def create_app(config_class=TestConfig):
             return make_response(jsonify({'error': str(e)}), 500)
 
     @app.route('/api/get-weather-for-favorite', methods=['GET'])
-    def get_weather_for_favorite(location_name) -> Response:
+    def get_weather_for_favorite() -> Response:
         """
         Route to retrieve the weather at a specific location by its name.
 
-        Path Parameter:
+        Query Parameter:
             - location_name (str): The name of the desired location
 
         Returns:
-            JSON response with the song details or error message.
+            JSON response with the weather data or error message.
         """
         try:
+            location_name = request.args.get('location_name')  # Extract from query params
+            if not location_name:
+                return make_response(jsonify({'error': "'location_name' query parameter is required"}), 400)
+
             weather_client = WeatherClient()
             app.logger.info(f"Retrieving weather by location name: {location_name}")
             weather = favorite_locations_model.FavoriteLocations.get_weather_for_favorite(location_name, weather_client)
-            return make_response(jsonify({'status': 'success', 'Weather at desired location': weather}), 200)
+            return make_response(jsonify({'status': 'success', 'weather': weather}), 200)
         except Exception as e:
-            app.logger.error(f"Error retrieving weather at location by name: {e}")
+            app.logger.error(f"Error retrieving weather at location '{location_name}': {e}")
             return make_response(jsonify({'error': str(e)}), 500)
         
 
